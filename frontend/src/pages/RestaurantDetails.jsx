@@ -10,7 +10,6 @@ import Navbar from "../components/Navbar";
 import { getRestaurant } from "../services/restaurantService";
 
 function RestaurantDetails() {
-
   const { id } = useParams();
 
   const [restaurant, setRestaurant] = useState(null);
@@ -20,37 +19,24 @@ function RestaurantDetails() {
   const [category, setCategory] = useState("All");
 
   useEffect(() => {
+    const loadRestaurant = async () => {
+      try {
+        const data = await getRestaurant(id);
+        setRestaurant(data);
+      } catch (error) {
+        console.log(error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
     loadRestaurant();
-
   }, [id]);
 
-  async function loadRestaurant() {
-
-    try {
-
-      const data = await getRestaurant(id);
-
-      setRestaurant(data);
-
-    } catch (error) {
-
-      console.log(error);
-
-    } finally {
-
-      setLoading(false);
-
-    }
-
-  }
-
   const filteredMenu = useMemo(() => {
-
     if (!restaurant) return [];
 
     return restaurant.menu.filter((food) => {
-
       const searchMatch =
         food.name
           .toLowerCase()
@@ -61,56 +47,35 @@ function RestaurantDetails() {
         food.category === category;
 
       return searchMatch && categoryMatch;
-
     });
-
   }, [restaurant, search, category]);
 
   if (loading) {
-
     return (
-
       <>
         <Navbar />
-
         <div className="text-center mt-20 text-4xl font-bold">
-
           Loading...
-
         </div>
-
       </>
-
     );
-
   }
 
   if (!restaurant) {
-
     return (
-
       <>
         <Navbar />
-
         <div className="text-center mt-20 text-4xl font-bold">
-
           Restaurant Not Found
-
         </div>
-
       </>
-
     );
-
   }
 
   return (
-
     <>
       <Navbar />
-
       <div className="max-w-7xl mx-auto px-5 mt-10">
-
         <ImageWithFallback
           src={restaurant.image}
           alt={restaurant.name}
@@ -127,13 +92,9 @@ function RestaurantDetails() {
         </p>
 
         <div className="flex gap-8 mt-6">
-
           <p>⭐ {restaurant.rating}</p>
-
           <p>🚚 {restaurant.delivery}</p>
-
           <p>📍 {restaurant.address}</p>
-
         </div>
         <p className="mt-4 font-semibold">
           🚚 Delivery Fee : ₹{restaurant.deliveryFee}
@@ -152,7 +113,6 @@ function RestaurantDetails() {
         />
 
         <div className="flex gap-4 mt-8 flex-wrap">
-
           <button
             onClick={() => setCategory("All")}
             className="bg-red-500 text-white px-5 py-2 rounded-lg"
@@ -194,7 +154,6 @@ function RestaurantDetails() {
           >
             Salad
           </button>
-
         </div>
 
         <h2 className="text-4xl font-bold mt-12 mb-8">
@@ -202,28 +161,18 @@ function RestaurantDetails() {
         </h2>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-
           {filteredMenu.length > 0 ? (
-
             filteredMenu.map((food) => (
-
               <MenuCard
                 key={food._id}
                 food={food}
               />
-
             ))
-
           ) : (
-
             <div className="col-span-3 text-center text-2xl font-semibold text-gray-500">
-
               No food found 🍔
-
             </div>
-
           )}
-
         </div>
         <CouponCard />
 
@@ -232,13 +181,9 @@ function RestaurantDetails() {
         />
 
         <ReviewSection />
-
       </div>
-
     </>
-
   );
-
 }
 
 export default RestaurantDetails;

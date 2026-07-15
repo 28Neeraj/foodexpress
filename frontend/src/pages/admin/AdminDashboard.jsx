@@ -33,33 +33,32 @@ function AdminDashboard() {
 
   // Load Initial Dashboard Stats
   useEffect(() => {
+    async function loadDashboard() {
+      try {
+        const data = await getDashboardStats();
+        setStats(data);
+      } catch (error) {
+        console.log(error);
+      } finally {
+        setLoading(false);
+      }
+    }
     loadDashboard();
   }, []);
 
   // Reload Analytics whenever the filter changes
   useEffect(() => {
+    const loadAnalytics = async () => {
+      try {
+        const data = await getAnalytics(filter);
+        setAnalytics(data);
+      } catch (error) {
+        console.log(error);
+      }
+    };
+
     loadAnalytics();
   }, [filter]);
-
-  async function loadDashboard() {
-    try {
-      const data = await getDashboardStats();
-      setStats(data);
-    } catch (error) {
-      console.log(error);
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  async function loadAnalytics() {
-    try {
-      const data = await getAnalytics(filter);
-      setAnalytics(data);
-    } catch (error) {
-      console.log(error);
-    }
-  }
 
   // CSV Export Function
   function exportCSV() {
