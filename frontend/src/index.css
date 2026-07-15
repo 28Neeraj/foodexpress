@@ -1,0 +1,32 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html { scroll-behavior: smooth; }
+  body { @apply bg-[#fffaf7] text-slate-900 antialiased; }
+  ::selection { @apply bg-orange-200 text-orange-950; }
+}
+
+@layer components {
+  .page-shell { @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8; }
+  .section-title { @apply text-2xl font-extrabold tracking-tight text-slate-900 sm:text-3xl; }
+  .section-kicker { @apply mb-2 text-sm font-bold uppercase tracking-[0.16em] text-orange-600; }
+  .soft-card { @apply rounded-3xl border border-orange-100 bg-white shadow-[0_10px_35px_-18px_rgba(234,88,12,0.35)]; }
+
+  /* A consistent upgrade layer for legacy customer, checkout and admin screens. */
+  input:not([type="radio"]):not([type="checkbox"]), select, textarea { @apply rounded-xl border-slate-200 outline-none transition focus:border-orange-400 focus:ring-4 focus:ring-orange-100; }
+  button { @apply transition duration-200 active:scale-[.98]; }
+  table { @apply overflow-hidden rounded-2xl border border-slate-100 bg-white; }
+  thead { @apply bg-orange-50 text-slate-700; }
+  th { @apply text-left text-xs font-extrabold uppercase tracking-wider; }
+  td { @apply text-slate-600; }
+  .bg-white.shadow-lg.rounded-xl, .bg-white.shadow-xl.rounded-xl { @apply rounded-3xl border border-orange-100 shadow-[0_12px_35px_-20px_rgba(234,88,12,.35)]; }
+  .bg-red-500 { @apply !bg-orange-500; }
+  .hover\:bg-red-600:hover { @apply !bg-orange-600; }
+  .min-h-screen.flex.justify-center.items-center.bg-orange-50,
+  .min-h-screen.flex.justify-center.items-center.bg-red-50 { @apply bg-[radial-gradient(circle_at_80%_10%,#fed7aa,transparent_30%),#fffaf7] p-4; }
+  .min-h-screen.flex.justify-center.items-center.bg-orange-50 > form,
+  .min-h-screen.flex.justify-center.items-center.bg-red-50 > form { @apply w-full max-w-md rounded-[2rem] border border-orange-100 shadow-2xl shadow-orange-100/50; }
+  .max-w-7xl.mx-auto.px-5.mt-10, .max-w-6xl.mx-auto.p-8, .max-w-6xl.mx-auto.mt-10.p-5, .max-w-5xl.mx-auto.p-8 { @apply mb-16; }
+}

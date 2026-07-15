@@ -1,0 +1,6 @@
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import RestaurantCard from "./RestaurantCard";
+import { getRestaurants } from "../services/restaurantService";
+function RestaurantSection() { const [restaurants, setRestaurants] = useState([]); const [loading, setLoading] = useState(true); useEffect(() => { getRestaurants().then(setRestaurants).catch(console.error).finally(() => setLoading(false)); }, []); return <section className="page-shell mt-20"><p className="section-kicker">Handpicked for you</p><div className="mb-8 flex items-end justify-between"><div><h2 className="section-title">Top-rated restaurants</h2><p className="mt-2 text-slate-500">Local favourites, ready when you are.</p></div><Link to="/restaurants" className="hidden text-sm font-bold text-orange-600 sm:block">View all →</Link></div>{loading ? <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">{[1,2,3].map((i) => <div key={i} className="h-80 animate-pulse rounded-3xl bg-orange-100" />)}</div> : <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">{restaurants.slice(0, 6).map((restaurant) => <RestaurantCard key={restaurant._id} restaurant={restaurant} />)}</div>}</section>; }
+export default RestaurantSection;

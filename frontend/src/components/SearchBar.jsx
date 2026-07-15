@@ -1,0 +1,3 @@
+import { FaSearch } from "react-icons/fa";
+function SearchBar({ search, setSearch }) { return <div className="page-shell mt-10"><div className="flex items-center gap-3 rounded-2xl border border-orange-200 bg-white px-5 py-4 shadow-sm focus-within:border-orange-400 focus-within:ring-4 focus-within:ring-orange-100"><FaSearch className="text-orange-500" /><input type="text" placeholder="Search restaurants or dishes" value={search} onChange={(e) => setSearch(e.target.value)} className="w-full bg-transparent text-lg outline-none placeholder:text-slate-400" /></div></div>; }
+export default SearchBar;
