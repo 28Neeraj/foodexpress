@@ -19,19 +19,16 @@ function RestaurantDetails() {
   const [category, setCategory] = useState("All");
 
   useEffect(() => {
-    const loadRestaurant = async () => {
-      try {
-        const data = await getRestaurant(id);
+    getRestaurant(id)
+      .then((data) => {
         setRestaurant(data);
-      } catch (error) {
+      })
+      .catch((error) => {
         console.log(error);
-      } finally {
+      })
+      .finally(() => {
         setLoading(false);
-      }
-    };
-
-    loadRestaurant();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+      });
   }, [id]);
 
   const filteredMenu = useMemo(() => {

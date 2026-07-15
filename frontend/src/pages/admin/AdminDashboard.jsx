@@ -48,17 +48,13 @@ function AdminDashboard() {
 
   // Reload Analytics whenever the filter changes
   useEffect(() => {
-    const loadAnalytics = async () => {
-      try {
-        const data = await getAnalytics(filter);
+    getAnalytics(filter)
+      .then((data) => {
         setAnalytics(data);
-      } catch (error) {
+      })
+      .catch((error) => {
         console.log(error);
-      }
-    };
-
-    loadAnalytics();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+      });
   }, [filter]);
 
   // CSV Export Function
