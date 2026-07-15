@@ -58,6 +58,7 @@ function AdminDashboard() {
     };
 
     loadAnalytics();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filter]);
 
   // CSV Export Function
