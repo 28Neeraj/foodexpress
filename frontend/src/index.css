@@ -2,6 +2,16 @@
 @tailwind components;
 @tailwind utilities;
 
+:root { --app-bg: #fffaf7; --app-text: #0f172a; --surface: #ffffff; --surface-soft: #fff7ed; --border: #ffedd5; --muted: #64748b; }
+:root[data-theme="dark"] { --app-bg: #0b1220; --app-text: #e2e8f0; --surface: #111827; --surface-soft: #172033; --border: #334155; --muted: #94a3b8; color-scheme: dark; }
+html, body, #root { min-height: 100%; }
+body, nav, footer, main, .soft-card, input, textarea, select, table, .bg-white { transition: background-color .22s ease, color .22s ease, border-color .22s ease, box-shadow .22s ease; }
+:root[data-theme="dark"] body { background: var(--app-bg); color: var(--app-text); }
+:root[data-theme="dark"] .bg-white, :root[data-theme="dark"] .soft-card, :root[data-theme="dark"] input, :root[data-theme="dark"] textarea, :root[data-theme="dark"] select, :root[data-theme="dark"] table { background-color: var(--surface) !important; border-color: var(--border) !important; color: var(--app-text) !important; }
+:root[data-theme="dark"] .text-slate-900, :root[data-theme="dark"] .text-slate-800, :root[data-theme="dark"] .text-slate-700 { color: var(--app-text) !important; }
+:root[data-theme="dark"] .text-slate-600, :root[data-theme="dark"] .text-slate-500 { color: var(--muted) !important; }
+:root[data-theme="dark"] .bg-orange-50 { background-color: #2b1d12 !important; }
+
 @layer base {
   html { scroll-behavior: smooth; }
   body { @apply bg-[#fffaf7] text-slate-900 antialiased; }

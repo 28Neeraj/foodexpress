@@ -26,6 +26,9 @@ const orderSchema = new mongoose.Schema(
       type: Number,
       required: true,
     },
+    pricing: { baseSubtotal: Number, platformCommission: Number, gst: Number, deliveryFee: Number, platformFee: Number, packagingCharge: Number, discount: Number, total: Number },
+    restaurant: { type: mongoose.Schema.Types.ObjectId, ref: "Restaurant" },
+    assignment: { attempts: { type: Number, default: 0 }, offeredTo: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }], expiresAt: Date },
 
     deliveryPartner: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     couponCode: { type: String, default: "" },

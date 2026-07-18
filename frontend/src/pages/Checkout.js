@@ -6,6 +6,7 @@ import { placeOrder } from "../services/orderService";
 import { getAddresses } from "../services/authService";
 import { useNotification } from "../context/NotificationContext";
 import { getCouponDiscount } from "../constants/coupons";
+import { priceQuote } from "../utils/pricing";
 
 function Checkout() {
 
@@ -89,6 +90,7 @@ ${defaultAddress.state}
     ) || 0;
   const couponCode = sessionStorage.getItem("foodexpressCoupon") || "";
   const discount = getCouponDiscount(couponCode, totalAmount);
+  const pricing = priceQuote(cart?.items || [], discount);
     async function handlePlaceOrder() {
 
   if (!selectedAddress) {
@@ -373,15 +375,7 @@ ${address.state}
 
               ))}
 
-              <div className="flex justify-between mt-8 text-2xl font-bold">
-
-                <span>Total</span>
-
-                <span>₹{totalAmount}</span>
-
-              </div>
-
-              {discount > 0 && <div className="mt-4 rounded-xl bg-emerald-50 p-4"><div className="flex justify-between font-semibold text-emerald-700"><span>{couponCode} discount</span><span>-₹{discount}</span></div><div className="mt-2 flex justify-between text-xl font-black text-slate-900"><span>Amount to pay</span><span>₹{totalAmount - discount}</span></div></div>}
+              <div className="mt-6 space-y-3 border-t pt-4 text-sm"><div className="flex justify-between"><span>Restaurant base subtotal</span><span>₹{pricing.baseSubtotal}</span></div><div className="flex justify-between"><span>Platform commission (12%)</span><span>₹{pricing.platformCommission}</span></div><div className="flex justify-between"><span>GST (18%)</span><span>₹{pricing.gst}</span></div><div className="flex justify-between"><span>Delivery fee</span><span>₹{pricing.deliveryFee}</span></div><div className="flex justify-between"><span>Platform fee</span><span>₹{pricing.platformFee}</span></div><div className="flex justify-between"><span>Packaging charge</span><span>₹{pricing.packagingCharge}</span></div>{discount > 0 && <div className="flex justify-between font-semibold text-emerald-700"><span>{couponCode} discount</span><span>-₹{discount}</span></div>}</div><div className="mt-5 flex justify-between border-t pt-5 text-2xl font-black"><span>Amount to pay</span><span>₹{pricing.total}</span></div>
 
               <button
   onClick={handlePlaceOrder}

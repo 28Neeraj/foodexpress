@@ -1,0 +1,48 @@
+import { useEffect, useMemo, useState } from "react";
+import { io } from "socket.io-client";
+import { FaClock, FaCloudUploadAlt, FaMotorcycle, FaPowerOff, FaStore } from "react-icons/fa";
+import Navbar from "../../components/Navbar";
+import { getMyRestaurant } from "../../services/onboardingService";
+import { useAuth } from "../../context/AuthContext";
+import api from "../../api/api";
+import { useNotification } from "../../context/NotificationContext";
+
+const actions = ["Accepted", "Rejected", "Preparing", "Ready for Pickup", "Handed Over"];
+const money = (value) => `₹${Number(value || 0).toLocaleString("en-IN")}`;
+
+export default function RestaurantDashboard() {
+  const { user } = useAuth();
+  const { showNotification } = useNotification();
+  const [restaurant, setRestaurant] = useState(null);
+  const [orders, setOrders] = useState([]);
+  const [activeTab, setActiveTab] = useState("Orders");
+  const [loading, setLoading] = useState(true);
+  const [item, setItem] = useState({ name: "", category: "", description: "", price: "", image: "", isVeg: true });
+  const [preparation, setPreparation] = useState({});
+
+  const load = async () => {
+    try {
+      const [restaurantData, orderData] = await Promise.all([getMyRestaurant(), api.get("/restaurant-owner/orders").then((response) => response.data)]);
+      setRestaurant(restaurantData); setOrders(orderData.orders || []);
+    } catch { setRestaurant(null); setOrders([]); }
+    finally { setLoading(false); }
+  };
+  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    if (!user?.id) return undefined;
+    const socket = io(process.env.REACT_APP_SOCKET_URL || "http://localhost:5000");
+    socket.emit("authenticate", user.id);
+    socket.on("restaurant:new-order", () => { showNotification("New order received"); load(); });
+    socket.on("order:status", load);
+    return () => socket.disconnect();
+  }, [user?.id]);
+
+  const stats = useMemo(() => ({ newOrders: orders.filter((order) => order.orderStatus === "Placed").length, active: orders.filter((order) => !["Delivered", "Rejected", "Cancelled"].includes(order.orderStatus)).length, sales: orders.filter((order) => order.orderStatus !== "Rejected").reduce((sum, order) => sum + Number(order.pricing?.baseSubtotal || 0), 0) }), [orders]);
+  const addItem = async (event) => { event.preventDefault(); try { await api.post(`/restaurants/${restaurant._id}/menu`, { ...item, price: Number(item.price) }); setItem({ name: "", category: "", description: "", price: "", image: "", isVeg: true }); showNotification("Menu item added."); load(); } catch (error) { showNotification(error.response?.data?.message || "Unable to add menu item", "error"); } };
+  const upload = async (file) => { if (!file) return; const form = new FormData(); form.append("image", file); try { const { data } = await api.post("/restaurant-owner/upload", form); setItem((current) => ({ ...current, image: data.image })); showNotification("Food image uploaded."); } catch (error) { showNotification(error.response?.data?.message || "Image upload failed", "error"); } };
+  const updateOrder = async (orderId, status) => { try { await api.put(`/restaurant-owner/orders/${orderId}`, { status, preparationMinutes: Number(preparation[orderId] || 20) }); showNotification(`Order marked ${status}.`); load(); } catch (error) { showNotification(error.response?.data?.message || "Unable to update order", "error"); } };
+
+  if (loading) return <><Navbar /><main className="page-shell py-16"><div className="h-52 animate-pulse rounded-3xl bg-orange-100" /></main></>;
+  if (!restaurant) return <><Navbar /><main className="page-shell py-16"><p className="section-kicker">Restaurant portal</p><h1 className="section-title">Dashboard unavailable</h1><p className="mt-3 text-slate-500">Your application is awaiting approval or no approved restaurant is linked to this account.</p></main></>;
+  return <><Navbar /><main className="min-h-screen bg-[#fffaf7] py-8"><div className="page-shell"><header className="rounded-3xl bg-slate-950 p-6 text-white sm:p-8"><div className="flex flex-wrap items-start justify-between gap-5"><div><p className="text-sm font-bold uppercase tracking-[.18em] text-orange-300">Restaurant partner portal</p><h1 className="mt-2 text-3xl font-black sm:text-4xl">{restaurant.name}</h1><p className="mt-2 text-slate-300">Manage orders, kitchen operations and your menu from one place.</p></div><button onClick={async () => { await api.put(`/restaurants/${restaurant._id}`, { isOpen: !restaurant.isOpen }); load(); }} className={`inline-flex items-center gap-2 rounded-xl px-5 py-3 font-bold ${restaurant.isOpen ? "bg-emerald-500 text-white" : "bg-slate-700"}`}><FaPowerOff /> {restaurant.isOpen ? "Accepting orders" : "Orders paused"}</button></div><div className="mt-7 grid gap-3 sm:grid-cols-3">{[["New orders", stats.newOrders, FaClock], ["Active orders", stats.active, FaMotorcycle], ["Base sales", money(stats.sales), FaStore]].map(([label, value, Icon]) => <div key={label} className="rounded-2xl bg-white/10 p-4"><Icon className="text-orange-300" /><p className="mt-3 text-2xl font-black">{value}</p><p className="text-sm text-slate-300">{label}</p></div>)}</div></header><nav className="mt-6 flex gap-2 overflow-auto border-b border-orange-100">{["Orders", "Menu"].map((tab) => <button key={tab} onClick={() => setActiveTab(tab)} className={`border-b-2 px-5 py-3 font-bold ${activeTab === tab ? "border-orange-500 text-orange-600" : "border-transparent text-slate-500"}`}>{tab}</button>)}</nav>{activeTab === "Orders" ? <section className="mt-6 grid gap-5">{orders.map((order) => <article key={order._id} className="soft-card overflow-hidden"><div className="flex flex-wrap items-start justify-between gap-4 border-b p-5"><div><p className="text-xs font-bold uppercase tracking-wider text-orange-600">Order #{order._id.slice(-6)} · {new Date(order.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</p><h2 className="mt-1 text-xl font-black">{order.user?.name || "Customer"}</h2><p className="mt-1 text-sm text-slate-500">{order.user?.phone || "Phone unavailable"} · {order.deliveryAddress}</p></div><span className="rounded-full bg-orange-100 px-3 py-1 text-sm font-black text-orange-700">{order.orderStatus}</span></div><div className="grid gap-5 p-5 lg:grid-cols-[1fr_auto]"><div><div className="space-y-2">{order.items.map((food, index) => <div key={`${food.foodId}-${index}`} className="flex justify-between text-sm"><span>{food.quantity}× {food.foodName}</span><b>{money(food.price * food.quantity)}</b></div>)}</div><p className="mt-4 border-t pt-3 text-sm font-bold">Customer total: {money(order.totalAmount)} · Payment: {order.paymentMethod}</p>{order.deliveryPartner && <p className="mt-2 text-sm text-slate-500">Partner: {order.deliveryPartner.name} · {order.deliveryPartner.phone || "assigned"}</p>}</div><div className="min-w-[240px]"><label className="text-xs font-bold uppercase text-slate-500">Preparation time</label><div className="mt-2 flex gap-2"><input type="number" min="0" value={preparation[order._id] ?? 20} onChange={(event) => setPreparation({ ...preparation, [order._id]: event.target.value })} className="w-20 p-2" /><span className="self-center text-sm">minutes</span></div><div className="mt-3 flex flex-wrap gap-2">{actions.filter((action) => !(order.orderStatus === "Placed" && !["Accepted", "Rejected"].includes(action))).map((action) => <button key={action} onClick={() => updateOrder(order._id, action)} className={`rounded-lg px-3 py-2 text-xs font-bold ${action === "Rejected" ? "bg-rose-100 text-rose-700" : "bg-slate-900 text-white"}`}>{action}</button>)}</div></div></div></article>)}{!orders.length && <div className="soft-card p-12 text-center"><h2 className="text-xl font-black">No orders yet</h2><p className="mt-2 text-slate-500">New customer orders will appear here instantly.</p></div>}</section> : <section className="mt-6 grid gap-6 lg:grid-cols-[.8fr_1.2fr]"><form onSubmit={addItem} className="soft-card p-6"><h2 className="text-xl font-black">Add menu item</h2><p className="mt-2 text-sm text-slate-500">You manually control each food item, image, description, category and base price.</p>{["name", "category", "description", "price", "image"].map((key) => <input key={key} required={key !== "description"} value={item[key]} onChange={(event) => setItem({ ...item, [key]: event.target.value })} placeholder={key === "price" ? "Base price (₹)" : key[0].toUpperCase() + key.slice(1)} className="mt-3 w-full p-3" />)}<label className="mt-3 flex cursor-pointer items-center gap-2 rounded-xl border border-dashed border-orange-300 p-3 text-sm font-bold text-orange-700"><FaCloudUploadAlt /> Upload food image<input type="file" accept="image/*" className="hidden" onChange={(event) => upload(event.target.files?.[0])} /></label><button className="mt-4 w-full rounded-xl bg-orange-500 py-3 font-bold text-white">Add menu item</button></form><div className="soft-card p-6"><h2 className="text-xl font-black">Your live menu</h2><div className="mt-4 divide-y">{restaurant.menu.map((food) => <div key={food._id} className="flex items-center justify-between gap-4 py-3"><div className="flex items-center gap-3"><img src={food.image} alt={food.name} className="h-12 w-12 rounded-lg object-cover" /><div><b>{food.name}</b><p className="text-sm text-slate-500">{food.category} · {food.isAvailable ? "Available" : "Unavailable"}</p></div></div><span className="font-black">{money(food.price)} base</span></div>)}{!restaurant.menu.length && <p className="py-8 text-slate-500">Add your first menu item to begin accepting orders.</p>}</div></div></section>}</div></main></>;
+}

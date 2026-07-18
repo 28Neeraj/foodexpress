@@ -11,6 +11,7 @@ import Users from "./pages/admin/Users";
 import RestaurantsAdmin from "./pages/admin/Restaurants";
 import Orders from "./pages/admin/Orders";
 import Foods from "./pages/admin/Foods";
+import Approvals from "./pages/admin/Approvals";
 import Checkout from "./pages/Checkout";
 import UserOrders from "./pages/UserOrders";
 import Profile from "./pages/Profile";
@@ -23,6 +24,8 @@ import OrderSuccess from "./pages/OrderSuccess";
 import Welcome from "./pages/Welcome";
 import FooterInfoPage from "./pages/FooterInfoPage";
 import CartPreviewBar from "./components/CartPreviewBar";
+import PartnerPortal from "./pages/onboarding/PartnerPortal";
+import RestaurantDashboard from "./pages/restaurant/RestaurantDashboard";
 
 function App() {
   return (
@@ -74,7 +77,11 @@ function App() {
   path="/admin"
   element={<AdminDashboard />}
 />
+<Route path="/admin/approvals" element={<Approvals />} />
 <Route path="/delivery" element={<DeliveryPartner />} />
+<Route path="/delivery-partner" element={<PartnerPortal type="delivery" />} />
+<Route path="/restaurant-partner" element={<PartnerPortal type="restaurant" />} />
+<Route path="/restaurant/dashboard" element={<RestaurantDashboard />} />
 <Route path="/order/:id" element={<OrderSuccess />} />
       <Route
         path="/restaurant/:id"

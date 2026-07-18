@@ -3,7 +3,7 @@ const Restaurant = require("../models/Restaurant");
 // GET ALL RESTAURANTS
 const getRestaurants = async (req, res) => {
   try {
-    const restaurants = await Restaurant.find();
+    const restaurants = await Restaurant.find({ approvalStatus: "approved" });
 
     res.status(200).json(restaurants);
 
@@ -23,7 +23,9 @@ const getRestaurantById = async (req, res) => {
 
     const restaurant = await Restaurant.findById(req.params.id);
 
-    if (!restaurant) {
+    // Public restaurant pages are intentionally accessible without a logged-in user.
+    // Owner checks belong only on management endpoints below.
+    if (!restaurant || restaurant.approvalStatus !== "approved") {
 
       return res.status(404).json({
         message: "Restaurant Not Found",
@@ -77,6 +79,8 @@ const updateRestaurant = async (req, res) => {
 
   try {
 
+    const existing = await Restaurant.findById(req.params.id);
+    if (!existing || (req.user.role === "restaurant_owner" && String(existing.owner) !== String(req.user._id))) return res.status(404).json({ message: "Restaurant Not Found" });
     const restaurant = await Restaurant.findByIdAndUpdate(
 
       req.params.id,
@@ -165,7 +169,7 @@ const addFood = async (req, res) => {
 
     const restaurant = await Restaurant.findById(req.params.id);
 
-    if (!restaurant) {
+    if (!restaurant || (req.user.role === "restaurant_owner" && String(restaurant.owner) !== String(req.user._id))) {
 
       return res.status(404).json({
         message: "Restaurant Not Found",
@@ -206,7 +210,7 @@ const updateFood = async (req, res) => {
 
     const restaurant = await Restaurant.findById(req.params.id);
 
-    if (!restaurant) {
+    if (!restaurant || (req.user.role === "restaurant_owner" && String(restaurant.owner) !== String(req.user._id))) {
 
       return res.status(404).json({
 
@@ -261,7 +265,7 @@ const deleteFood = async (req, res) => {
 
     const restaurant = await Restaurant.findById(req.params.id);
 
-    if (!restaurant) {
+    if (!restaurant || (req.user.role === "restaurant_owner" && String(restaurant.owner) !== String(req.user._id))) {
 
       return res.status(404).json({
 
