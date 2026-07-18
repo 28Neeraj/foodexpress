@@ -5,8 +5,8 @@ import { FaLinkedinIn, FaInstagram, FaYoutube, FaFacebookF, FaXTwitter, FaHeart 
 const groups = [
   { title: "COMPANY", links: [["About Us", "/about"], ["Careers", "/careers"], ["Blog", "/blog"], ["Press", "/press"], ["Contact Us", "/contact"], ["Terms & Conditions", "/terms"]] },
   { title: "FOR USERS", links: [["Browse Restaurants", "/restaurants"], ["Popular Cuisines", "/cuisines"], ["Offers & Deals", "/offers"], ["Track Order", "/orders"], ["Help & Support", "/support"], ["FAQs", "/faqs"]] },
-  { title: "FOR RESTAURANTS", links: [["Partner With Us", "/restaurant-partner"], ["Restaurant App", "/restaurant-app"], ["Resources", "/restaurant-resources"], ["Pricing", "/restaurant-pricing"], ["Success Stories", "/restaurant-stories"]] },
-  { title: "FOR DELIVERY", links: [["Partner With Us", "/delivery-partner"], ["Delivery Partner App", "/delivery-app"], ["Benefits", "/delivery-benefits"], ["Requirements", "/delivery-requirements"]] },
+  { title: "FOR RESTAURANTS", links: [["Add Restaurant", "/restaurant-partner"], ["Restaurant Dashboard", "/restaurant/dashboard"], ["Resources", "/restaurant-resources"], ["Pricing", "/restaurant-pricing"]] },
+  { title: "FOR DELIVERY", links: [["Become a Delivery Partner", "/delivery-partner"], ["Delivery Dashboard", "/delivery"], ["Benefits", "/delivery-benefits"], ["Requirements", "/delivery-requirements"]] },
 ];
 
 export default function Footer() {

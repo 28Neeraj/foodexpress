@@ -64,7 +64,16 @@ const restaurantSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  owner: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+  approvalStatus: { type: String, enum: ["pending", "approved", "rejected"], default: "approved", index: true },
+  isOpen: { type: Boolean, default: true },
+  cuisine: [String],
+  gstNumber: { type: String, default: "" },
+  fssaiNumber: { type: String, default: "" },
+  bankDetails: { accountHolder: String, accountNumber: String, ifsc: String },
+  location: { type: { type: String, enum: ["Point"], default: "Point" }, coordinates: { type: [Number], default: [0, 0] } },
   menu: [menuSchema]
-});
+}, { timestamps: true });
+restaurantSchema.index({ location: "2dsphere" });
 
 module.exports = mongoose.model("Restaurant", restaurantSchema);

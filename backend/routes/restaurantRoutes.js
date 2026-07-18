@@ -3,7 +3,7 @@ const express = require("express");
 const router = express.Router();
 const {
   protect,
-  admin,
+  admin, allowRoles,
 } = require("../middleware/authMiddleware");
 const {
 
@@ -40,7 +40,7 @@ router.post(
 router.put(
   "/:id",
   protect,
-  admin,
+  allowRoles("admin", "restaurant_owner"),
   updateRestaurant
 );
 
@@ -50,25 +50,10 @@ router.delete(
   admin,
   deleteRestaurant
 );
-router.post(
-  "/:id/menu",
-  protect,
-  admin,
-  addFood
-);
+router.post("/:id/menu", protect, allowRoles("admin", "restaurant_owner"), addFood);
 
-router.put(
-  "/:id/menu/:foodId",
-  protect,
-  admin,
-  updateFood
-);
+router.put("/:id/menu/:foodId", protect, allowRoles("admin", "restaurant_owner"), updateFood);
 
-router.delete(
-  "/:id/menu/:foodId",
-  protect,
-  admin,
-  deleteFood
-);
+router.delete("/:id/menu/:foodId", protect, allowRoles("admin", "restaurant_owner"), deleteFood);
 
 module.exports = router;

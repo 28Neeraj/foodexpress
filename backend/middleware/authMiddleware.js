@@ -20,6 +20,8 @@ const protect = async (req, res, next) => {
       );
 
       req.user = await User.findById(decoded.id).select("-password");
+      if (!req.user) return res.status(401).json({ message: "Account not found" });
+      req.effectiveRole = decoded.previewRole || req.user.role;
 
       next();
 
@@ -46,7 +48,7 @@ const admin = (req, res, next) => {
 
   if (
     req.user &&
-    req.user.role === "admin"
+    ["admin", "super_admin"].includes(req.effectiveRole || req.user.role)
   ) {
 
     next();
@@ -62,7 +64,7 @@ const admin = (req, res, next) => {
 };
 
 const allowRoles = (...roles) => (req, res, next) => {
-  if (req.user && roles.includes(req.user.role)) return next();
+  if (req.user && roles.includes(req.effectiveRole || req.user.role)) return next();
   return res.status(403).json({ message: "You do not have access to this action" });
 };
 

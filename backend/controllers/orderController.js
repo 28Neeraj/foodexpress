@@ -1,6 +1,9 @@
 const Order = require("../models/Order");
 const Cart = require("../models/Cart");
 const { calculateCouponDiscount } = require("../constants/coupons");
+const Restaurant = require("../models/Restaurant");
+const { quote } = require("../services/pricingService");
+const { assignOrQueue } = require("../services/assignmentService");
 
 // PLACE ORDER
 
@@ -36,6 +39,10 @@ const placeOrder = async (req, res) => {
     );
 
     const coupon = calculateCouponDiscount(req.body.couponCode, total);
+    const pricing = quote(cart.items, coupon.discount);
+    const foodIds = cart.items.map((item) => item.foodId);
+    const restaurant = await Restaurant.findOne({ "menu._id": { $in: foodIds }, approvalStatus: "approved", isOpen: true });
+    if (!restaurant) return res.status(400).json({ message: "This restaurant is unavailable. Please refresh your cart." });
 
     const order = await Order.create({
 
@@ -43,7 +50,9 @@ const placeOrder = async (req, res) => {
 
       items: cart.items,
 
-      totalAmount: total - coupon.discount,
+      totalAmount: pricing.total,
+      pricing,
+      restaurant: restaurant._id,
 
       deliveryAddress,
 
@@ -84,6 +93,9 @@ cart.items = [];
 
 await cart.save();
 
+    await assignOrQueue(order, req.app.get("io"));
+    const restaurantOwner = await Restaurant.findById(restaurant._id).select("owner");
+    if (restaurantOwner?.owner) req.app.get("io")?.to(`user:${restaurantOwner.owner}`).emit("restaurant:new-order", { orderId: order._id });
     res.status(201).json({
 
       message: "Order Placed Successfully",
@@ -207,6 +219,7 @@ const updateOrderStatus = async (req, res) => {
     order.statusTimeline.push({ status, note: req.body.note || "Status updated" });
 
     await order.save();
+    req.app.get("io")?.to(`order:${order._id}`).emit("order:status", { orderId: order._id, status: order.orderStatus, timeline: order.statusTimeline });
     
 
     res.json({

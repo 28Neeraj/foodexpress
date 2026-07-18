@@ -50,6 +50,28 @@ function foodImageFor(name, fallbackIndex) {
   return matchingKey ? dishImages[matchingKey] : foodImages[fallbackIndex % foodImages.length];
 }
 
+const restaurantImages = {
+  burger: "https://images.unsplash.com/photo-1552566626-52f8b828add9?auto=format&fit=crop&w=1200&q=85",
+  pizza: "https://images.unsplash.com/photo-1513104890138-7c749659a591?auto=format&fit=crop&w=1200&q=85",
+  northIndian: "https://images.unsplash.com/photo-1515003197210-e0cd71810b5f?auto=format&fit=crop&w=1200&q=85",
+  tibetan: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1200&q=85",
+  cafe: "https://images.unsplash.com/photo-1445116572660-236099ec97a0?auto=format&fit=crop&w=1200&q=85",
+  southIndian: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=1200&q=85",
+  healthy: "https://images.unsplash.com/photo-1466637574441-749b8f19452f?auto=format&fit=crop&w=1200&q=85",
+  mughlai: "https://images.unsplash.com/photo-1514933651103-005eec06c04b?auto=format&fit=crop&w=1200&q=85"
+};
+
+// Stable Unsplash URLs are used instead of random image services: every seed remains
+// available and shows an actual food/restaurant photograph rather than an unrelated image.
+function searchableFoodImage(name, restaurantIndex, itemIndex) {
+  const source = foodImageFor(name, itemIndex);
+  return `${source}&auto=format&fit=crop&w=720&q=85&sig=${restaurantIndex * 40 + itemIndex + 1}`;
+}
+
+function searchableRestaurantImage(theme) {
+  return restaurantImages[theme] || restaurantImages.northIndian;
+}
+
 const menus = {
   burger: ["Classic Veg Burger", "Crispy Chicken Burger", "Paneer Grill Burger", "BBQ Chicken Burger", "Double Cheese Burger", "Spicy Bean Burger", "Peri Peri Fries", "Loaded Cheese Fries", "Onion Rings", "Chicken Nuggets", "Veggie Wrap", "Chicken Wrap", "Mexican Burger", "Mushroom Melt Burger", "Coleslaw", "Chocolate Shake", "Oreo Shake", "Cold Coffee", "Lemon Iced Tea", "Chocolate Brownie"],
   pizza: ["Margherita Pizza", "Farmhouse Pizza", "Tandoori Paneer Pizza", "Veggie Supreme Pizza", "Pepperoni Pizza", "BBQ Chicken Pizza", "Chicken Sausage Pizza", "Garlic Bread", "Stuffed Garlic Bread", "Cheesy Dip", "Jalapeno Poppers", "Potato Wedges", "Pasta Arrabbiata", "Pasta Alfredo", "Choco Lava Cake", "Chocolate Brownie", "Cold Coffee", "Virgin Mojito", "Pepsi", "Cheese Burst Pizza"],
@@ -61,12 +83,12 @@ const menus = {
   mughlai: ["Mutton Korma", "Chicken Korma", "Chicken Biryani", "Mutton Biryani", "Butter Chicken", "Chicken Changezi", "Nihari", "Chicken Seekh Kebab", "Mutton Seekh Kebab", "Chicken Tikka", "Paneer Makhani", "Dal Makhani", "Shahi Paneer", "Rumali Roti", "Butter Naan", "Khamiri Roti", "Jeera Rice", "Phirni", "Shahi Tukda", "Sweet Lassi"]
 };
 
-const menuFor = (theme) => menus[theme].map((name, index) => ({
-  name,
+const menuFor = (theme, restaurantName, restaurantIndex) => menus[theme].map((name, index) => ({
+  name: index % 3 === 0 ? `${restaurantName} Signature ${name}` : index % 3 === 1 ? `Chef's Special ${name}` : name,
   category: theme === "tibetan" ? "Asian & Tibetan" : theme === "southIndian" ? "South Indian" : theme === "cafe" ? "Cafe Favourites" : theme === "healthy" ? "Healthy Eats" : theme === "pizza" ? "Pizza & Sides" : theme === "burger" ? "Burgers & Sides" : theme === "mughlai" ? "Mughlai" : "North Indian",
   description: `Freshly prepared ${name.toLowerCase()} made with quality ingredients.`,
   price: 99 + index * 20,
-  image: foodImageFor(name, index),
+  image: searchableFoodImage(name, restaurantIndex, index),
   isVeg: !/(Chicken|Mutton|Pepperoni|Seekh|Nihari|Tandoori Chicken|BBQ)/i.test(name),
   isAvailable: true
 }));
@@ -78,16 +100,30 @@ const restaurants = [
   ["Indian Accent", "The Lodhi, Lodhi Road, New Delhi", "northIndian"], ["Bukhara", "ITC Maurya, Chanakyapuri, New Delhi", "northIndian"], ["Karim's", "Jama Masjid, Old Delhi", "mughlai"], ["Saravana Bhavan", "Janpath, Connaught Place, New Delhi", "southIndian"], ["The Big Chill Cafe", "Khan Market, New Delhi", "cafe"], ["Mamagoto", "Khan Market, New Delhi", "tibetan"], ["Social", "Connaught Place, New Delhi", "cafe"], ["Daryaganj", "Connaught Place, New Delhi", "northIndian"]
 ];
 
+// Locally seeded fictional partners, distributed across the two delivery markets.
+// They deliberately use the same owner-curated menu templates—no menu content is AI-generated at runtime.
+const dehradunAreas = ["Rajpur Road", "Jakhan", "Karanpur", "Prem Nagar", "Ballupur", "Vasant Vihar", "Clement Town", "Patel Nagar", "Race Course", "GMS Road", "Dalanwala", "Sahastradhara Road", "Malsi", "Kaulagarh", "Nehru Colony"];
+const delhiAreas = ["Connaught Place", "Khan Market", "Saket", "Hauz Khas", "Lajpat Nagar", "Dwarka", "Rohini", "Rajouri Garden", "Vasant Kunj", "Greater Kailash", "Karol Bagh", "Mayur Vihar", "Malviya Nagar", "Pitampura", "Janakpuri"];
+const localNames = [
+  "Pahadi Rasoi", "Doon Darbar", "Cedar Kitchen", "Valley Bites", "Himalayan Spoon", "Mussoorie Momo Co.", "Rajpur Roast", "Doon Tandoor", "Pine & Pepper", "Clock Tower Cafe", "Saffron Route", "Garhwal Grill", "Riverstone Kitchen", "Malsi Masala", "The Chai Junction", "Basmati House", "Crispy Crust", "Noodle Nest", "Green Plate", "The Curry Leaf", "Pahadi Platter", "Doon Delights", "Maple Cafe", "Bowl & Basil", "Spice Valley", "Capital Tandoor", "Delhi Darbar Kitchen", "Metro Momo House", "Nizam's Kitchen", "Chandni Chowk Chaat", "Lotus Leaf Cafe", "Urban Tiffin", "The Butter Paneer Co.", "Old Delhi Biryani", "South Spice Express", "Curry Capital", "Saffron Courtyard", "The Delhi Dosa Co.", "Kebab Junction", "Garden City Cafe", "Bite District", "Masala Ministry", "Pasta Piazza", "Tandoori Trails", "Chilli & Chopsticks", "Biryani Boulevard", "The Lunchbox Kitchen", "Toast & Tales", "Brew Bungalow", "Royal Rasoi", "Momo Mountain", "Pizza Pavilion", "The Protein Pot", "Dosa Diaries", "Punjabi Pinch", "Nawabi Nights", "Cafe Cinnamon", "Grill Garden", "Rice & Roti", "Samosa Stories", "The Healthy Habit", "Basil Basket", "Crisp Corner", "The Naan Stop", "Tiffin Terrace", "Mughal Manor", "Bean & Bowl", "Khan Kitchen", "Momo Manor", "Pita & Paneer", "Chai Chapter", "Pasta Pantry", "Tandoor Town", "The Salad Studio", "Biryani Barn"
+];
+const themes = ["northIndian", "tibetan", "cafe", "pizza", "burger", "southIndian", "healthy", "mughlai"];
+localNames.forEach((name, index) => {
+  const isDoon = index < 38;
+  const area = (isDoon ? dehradunAreas : delhiAreas)[index % 15];
+  restaurants.push([name, `${area}, ${isDoon ? "Dehradun, Uttarakhand" : "New Delhi, Delhi"}`, themes[index % themes.length]]);
+});
+
 const catalogue = restaurants.map(([name, address, theme], index) => ({
   name,
-  image: foodImages[(index + 2) % foodImages.length],
+  image: searchableRestaurantImage(theme),
   description: `Popular ${theme === "tibetan" ? "Asian and Tibetan" : theme === "cafe" ? "cafe" : theme === "southIndian" ? "South Indian" : theme === "mughlai" ? "Mughlai" : theme} favourites for delivery.`,
   rating: Number((4.1 + (index % 8) / 10).toFixed(1)),
   delivery: `${20 + (index % 3) * 5}-${30 + (index % 3) * 5} min`,
   deliveryFee: 25 + (index % 3) * 10,
   offer: index % 2 ? "20% OFF above Rs.499" : "Free delivery above Rs.399",
   address,
-  menu: menuFor(theme)
+  menu: menuFor(theme, name, index)
 }));
 
 async function seed() {
